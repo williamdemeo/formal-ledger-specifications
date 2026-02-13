@@ -457,16 +457,16 @@ data _⊢_⇀⦇_,UTXO⦈_ : UTxOEnv → UTxOState → TopLevelTx → UTxOState 
   UTXO-valid : {utxo : UTxO} {fees : Fees} {donations : Donations} →
 
     ∙ IsValidFlagOf txTop ≡ true
-    ∙ UTXO-Premises Γ txTop utxo
     ∙ Γ ⊢ _ ⇀⦇ txTop ,UTXOS⦈ _
+    ∙ UTXO-Premises Γ txTop utxo
       ────────────────────────────────
       Γ ⊢ ⟦ utxo , fees , donations ⟧ ⇀⦇ txTop ,UTXO⦈ ⟦ (utxo ∣ SpendInputsOf txTop ᶜ) ∪ˡ outs txTop , fees + TxFeesOf txTop , donations + DonationsOf txTop ⟧
 
   UTXO-invalid : {utxo : UTxO} {fees : Fees} {donations : Donations} →
 
     ∙ IsValidFlagOf txTop ≡ false
-    ∙ UTXO-Premises Γ txTop utxo
     ∙ Γ ⊢ _ ⇀⦇ txTop ,UTXOS⦈ _
+    ∙ UTXO-Premises Γ txTop utxo
       ────────────────────────────────
       Γ ⊢ ⟦ utxo , fees , donations ⟧ ⇀⦇ txTop ,UTXO⦈ ⟦ utxo ∣ (CollateralInputsOf txTop) ᶜ , fees + cbalance (utxo ∣ CollateralInputsOf txTop) , donations ⟧
 

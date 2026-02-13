@@ -86,45 +86,46 @@ instance
 
 
 {--
+instance
   Computational-UTXO : Computational _⊢_⇀⦇_,UTXO⦈_ String
-  Computational-UTXO = MkComputational computeProof completeness
-    where
-    open Computational Computational-UTXOS renaming  ( computeProof to computeProof-UTXOS
+  Computational-UTXO = record {go} where
+    module go (Γ : UTxOEnv) (s : UTxOState) (txTop : TopLevelTx)
+      (let H-Yes , ⁇ H-Yes? = UTXO-valid-premises {txTop} {Γ} {UTxOOf s})
+      (let H-No  , ⁇ H-No?  = UTXO-invalid-premises  {txTop} {Γ} {UTxOOf s}) where
+      open Computational Computational-UTXOS renaming  ( computeProof to computeProof-UTXOS
                                                      ; completeness to completeness-UTXOS)
 
-    --------------------------------------------------------------------------
-    -- computeProof for UTXO
-    --------------------------------------------------------------------------
+      --------------------------------------------------------------------------
+      -- computeProof for UTXO
+      --------------------------------------------------------------------------
+      computeProof : ComputationResult String (∃[ s' ] Γ ⊢ s ⇀⦇ txTop ,UTXO⦈ s')
+      computeProof with computeProof-UTXOS Γ tt txTop
+      ... | failure es = failure es
+      ... | success (tt , utxosProof) =
+        case H-Yes? ,′ H-No? of λ where
+          (yes (p₁ , p₂) , no _ ) → success (_ , (UTXO-valid (p₁ , utxosProof , p₂)))
+          (no _  , yes (p₁ , p₂)) → success (_ , (UTXO-invalid (p₁ , utxosProof , p₂)))
+          (_     , _    ) → failure "isValid check failed"
 
-    computeProof : (Γ : UTxOEnv) (s : UTxOState) (txTop : TopLevelTx)
-      → ComputationResult String (∃[ s' ] Γ ⊢ s ⇀⦇ txTop ,UTXO⦈ s')
+      --------------------------------------------------------------------------
+      -- completeness for UTXO
+      --------------------------------------------------------------------------
+      completeness : ∀ s' → Γ ⊢ s ⇀⦇ txTop ,UTXO⦈ s' → map proj₁ computeProof ≡ success s'
+      completeness s' (UTXO-valid {utxo = utxo₁} {fees₁} {donations₁} p@(refl , utxosProof , q₂)) = Goal
+        where
+        Goal : map proj₁ computeProof ≡ success ⟦ (utxo₁ ∣ SpendInputsOf txTop ᶜ) ∪ˡ outs txTop , fees₁ + TxFeesOf txTop , donations₁ + DonationsOf txTop ⟧
+        Goal with H-No? | H-Yes?
+        ... | yes () | _
+        ... | no _  | yes premises = {!!}
+        ... | no _   | no ¬q = ⊥-elim (¬q (refl , q₂))
 
-    computeProof Γ (⟦ utxo , fees , donations ⟧ᵘ) txTop with (IsValidFlagOf txTop ≟ true)
-    ... | (no ¬valid)
-      with ¿ UTXO-Premises Γ txTop utxo ¿
-    ... | (no ¬p) = failure (genErrors ¬p)
-    ... | (yes p)
-      with computeProof-UTXOS Γ tt txTop
-    ... | failure es = failure es
-    ... | success (tt , utxosProof) =
-      success (⟦ utxo ∣ (CollateralInputsOf txTop) ᶜ , fees + cbalance (utxo ∣ CollateralInputsOf txTop) , donations ⟧ , UTXO-invalid ¬valid p utxosProof)
+      completeness _ (UTXO-invalid {utxo = utxo₁} {fees₁} {donations₁} p@(refl , utxosProof , q₂)) = Goal
+        where
+        Goal : map proj₁ computeProof ≡ success ⟦ utxo₁ ∣ CollateralInputsOf txTop ᶜ , fees₁ + cbalance (utxo₁ ∣ CollateralInputsOf txTop) , donations₁ ⟧ᵘ
+        Goal with H-Yes? | H-No?
+        ... | yes () | _
+        ... | no _  | yes premises = {!!}
+        ... | no _  | no ¬q = ⊥-elim (¬q (refl , q₂))
 
-    computeProof Γ (⟦ utxo , fees , donations ⟧ᵘ) txTop | (yes valid)
-      with ¿ UTXO-Premises Γ txTop utxo ¿
-    ... | (no ¬p) = failure (genErrors ¬p)
-    ... | (yes p)
-      with computeProof-UTXOS Γ tt txTop
-    ... | failure es = failure es
-    ... | success (tt , utxosProof) =
-      success (⟦ (utxo ∣ SpendInputsOf txTop ᶜ) ∪ˡ outs txTop , fees + TxFeesOf txTop , donations + DonationsOf txTop ⟧ , UTXO-valid valid p utxosProof)
-
-    --------------------------------------------------------------------------
-    -- completeness (mirrors computeProof)
-    --------------------------------------------------------------------------
-
-    completeness : (Γ : UTxOEnv) (s : UTxOState) (txTop : TopLevelTx) (s' : UTxOState)
-      → Γ ⊢ s ⇀⦇ txTop ,UTXO⦈ s' → (map proj₁ $ computeProof Γ s txTop) ≡ success s'
-
-    completeness Γ (⟦ utxo , fees , donations ⟧ᵘ) txTop s' x = {!!}
 -- --}
 ```
