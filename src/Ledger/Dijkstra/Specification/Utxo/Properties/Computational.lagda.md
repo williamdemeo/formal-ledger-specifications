@@ -87,69 +87,52 @@ instance
 
 instance
   Computational-UTXO : Computational _⊢_⇀⦇_,UTXO⦈_ String
-  Computational-UTXO = record {go} where
-    module go (Γ : UTxOEnv) (s : UTxOState) (txTop : TopLevelTx)
-      (let H-Yes , ⁇ H-Yes? = UTXO-valid-premises {txTop} {Γ} {UTxOOf s})
-      (let H-No  , ⁇ H-No?  = UTXO-invalid-premises  {txTop} {Γ} {UTxOOf s}) where
+  Computational-UTXO = MkComputational computeProof completeness
+    where
       open Computational Computational-UTXOS renaming  ( computeProof to computeProof-UTXOS
-                                                     ; completeness to completeness-UTXOS)
+                                                       ; completeness to completeness-UTXOS)
 
-      utxo-valid-prems : Ledger.Prelude.∃⁇
-      utxo-valid-prems = UTXO-valid-premises {txTop} {Γ} {UTxOOf s}
+      module _ {Γ : UTxOEnv}{s : UTxOState} {txTop : TopLevelTx} where
 
-      utxo-invalid-prems : Ledger.Prelude.∃⁇
-      utxo-invalid-prems = UTXO-invalid-premises {txTop} {Γ} {UTxOOf s}
+        --------------------------------------------------------------------------
+        -- computeProof for UTXO
+        --------------------------------------------------------------------------
+        computeProof : ComputationResult String (∃[ s' ] Γ ⊢ s ⇀⦇ txTop ,UTXO⦈ s')
+        computeProof with computeProof-UTXOS Γ tt txTop
+        ... | failure es = failure es
+        ... | success (tt , utxosProof) with ¿ UTXO-Premises Γ txTop (UTxOOf s) ¿
+        ... | no ¬prem = failure (genErrors ¬prem)
+        ... | yes prem with IsValidFlagOf txTop
+        ... | true  = success ( ⟦ (UTxOOf s ∣ SpendInputsOf txTop ᶜ) ∪ˡ outs txTop , FeesOf s + TxFeesOf txTop , DonationsOf s + DonationsOf txTop ⟧
+                              , UTXO-valid (refl , utxosProof , prem) )
+        ... | false = success ( ⟦ (UTxOOf s ∣ CollateralInputsOf txTop ᶜ) , FeesOf s + cbalance (UTxOOf s ∣ CollateralInputsOf txTop) , DonationsOf s ⟧ᵘ
+                              , UTXO-invalid (refl , utxosProof , prem) )
 
-      --------------------------------------------------------------------------
-      -- computeProof for UTXO
-      --------------------------------------------------------------------------
-      computeProof : ComputationResult String (∃[ s' ] Γ ⊢ s ⇀⦇ txTop ,UTXO⦈ s')
-      computeProof with computeProof-UTXOS Γ tt txTop
-      ... | failure es = failure es
-      ... | success (tt , utxosProof) =
-        case H-Yes? ,′ H-No? of λ where
-          (yes (p₁ , p₂) , no _ ) → success (_ , (UTXO-valid (p₁ , utxosProof , p₂)))
-          (no _  , yes (p₁ , p₂)) → success (_ , (UTXO-invalid (p₁ , utxosProof , p₂)))
-          (_     , _    ) → failure "isValid check failed"
+        --------------------------------------------------------------------------
+        -- completeness for UTXO
+        --------------------------------------------------------------------------
+        completeness : ∀ s' → Γ ⊢ s ⇀⦇ txTop ,UTXO⦈ s' → map proj₁ computeProof ≡ success s'
 
-      --------------------------------------------------------------------------
-      -- completeness for UTXO
-      --------------------------------------------------------------------------
-      completeness : ∀ s' → Γ ⊢ s ⇀⦇ txTop ,UTXO⦈ s' → map proj₁ computeProof ≡ success s'
-      completeness s' (UTXO-valid {utxo = utxo₁} {fees₁} {donations₁} (refl , utxosProof , q₂)) = Goal
-        where
-        Goal : map proj₁ computeProof
-             ≡ success ⟦ (utxo₁ ∣ SpendInputsOf txTop ᶜ) ∪ˡ outs txTop
-                       , fees₁ + TxFeesOf txTop
-                       , donations₁ + DonationsOf txTop ⟧
+        completeness s' (UTXO-valid (refl , utxosProof , prem))
+          with computeProof-UTXOS Γ tt txTop in eqU
+        ... | failure es = ⊥-elim $ case trans (sym (map-failure {f = proj₁} eqU))
+                                               (completeness-UTXOS Γ tt txTop tt utxosProof)
+                                    of λ ()
+        ... | success (tt , _) with ¿ UTXO-Premises Γ txTop (UTxOOf s) ¿
+        ... | no ¬prem = ⊥-elim (¬prem prem)
+        ... | yes _ with IsValidFlagOf txTop
+        ... | true = refl
+        -- ... | ()   -- unreachable because refl fixed isValid = true above
 
-        Goal with H-No? in eqNo | H-Yes? in eqYes
-        ... | yes ()    | _  -- impossible: would require isValid ≡ false
-        ... | no _      | no ¬q = ⊥-elim (¬q (refl , q₂))
-        ... | no _      | yes premises with computeProof-UTXOS Γ tt txTop in eqU
-        ... | success (tt , _) rewrite eqNo | eqYes = refl  -- force the internal `case H-Yes? ,′ H-No?`
-                                                            -- to reduce (and keep the UTXOS success branch)
-        ... | failure es =  -- contradict UTXOS completeness:
-                            -- map proj₁ can't be both failure and success
-          ⊥-elim $ case trans (sym (map-failure {f = proj₁} eqU))
-                              (completeness-UTXOS Γ tt txTop tt utxosProof) of λ ()
+        completeness Γ s txTop s' (UTXO-invalid (refl , utxosProof , prem))
+          with computeProof-UTXOS Γ tt txTop in eqU
+        ... | failure es = ⊥-elim $ case trans (sym (map-failure {f = proj₁} eqU))
+                                               (completeness-UTXOS Γ tt txTop tt utxosProof)
+                                    of λ ()
+        ... | success (tt , _) with ¿ UTXO-Premises Γ txTop (UTxOOf s) ¿
+        ... | no ¬prem = ⊥-elim (¬prem prem)
+        ... | yes _ with IsValidFlagOf txTop
+        ... | false = refl
+        -- ... | true ()   -- unreachable because refl fixed isValid = false above
 
-      completeness _ (UTXO-invalid {utxo = utxo₁} {fees₁} {donations₁} (refl , utxosProof , q₂)) = Goal
-        where
-        Goal : map proj₁ computeProof
-             ≡ success ⟦ utxo₁ ∣ CollateralInputsOf txTop ᶜ
-                       , fees₁ + cbalance (utxo₁ ∣ CollateralInputsOf txTop)
-                       , donations₁ ⟧ᵘ
-
-        Goal with H-Yes? in eqYes | H-No? in eqNo
-        ... | yes () | _
-        ... | no _  | no ¬q = ⊥-elim (¬q (refl , q₂))
-        ... | no _  | yes premises with computeProof-UTXOS Γ tt txTop in eqU
-        ... | success (tt , _) rewrite eqYes | eqNo = refl
-        ... | failure es =
-          ⊥-elim $
-            case
-              trans (sym (map-failure {f = proj₁} eqU))
-                    (completeness-UTXOS Γ tt txTop tt utxosProof)
-            of λ ()
 ```
