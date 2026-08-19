@@ -24,7 +24,7 @@ STATUS: DRAFT, not yet populated.
 
 **Project Title**:  A skeleton formalization of the Leios ledger rules (Dijkstra era)
 
-**Repository**:  `IntersectMBO/formal-ledger-specifications`
+**Repository**:  `williamdemeo/formal-ledger-specifications`
 
 ---
 
@@ -391,7 +391,7 @@ written back as a `(#N)` suffix.
 
 <!-- BEGIN GENERATED: milestone-1 -->
 
-### Issue M1-1: Design note: the skeleton's default decisions
+### Issue M1-1: Design note: the skeleton's default decisions (#2)
 
 **Labels:** `milestone-1-foundations`, `Leios`, `documentation`, `discussion`
 **Milestone:** 1. Foundations: interface, types, and parameters
@@ -434,7 +434,7 @@ recorded defaults.
 
 ---
 
-### Issue M1-2: `Leios.Abstract`: the abstract voting-crypto interface
+### Issue M1-2: `Leios.Abstract`: the abstract voting-crypto interface (#3)
 
 **Labels:** `milestone-1-foundations`, `Leios`, `era: dijkstra`
 **Milestone:** 1. Foundations: interface, types, and parameters
@@ -461,7 +461,7 @@ Full-roadmap counterpart: M1-1 (scoped down: Dijkstra-local, no
 
 ---
 
-### Issue M1-3: `Leios.Types`: endorser blocks, votes, certificates
+### Issue M1-3: `Leios.Types`: endorser blocks, votes, certificates (#4)
 
 **Labels:** `milestone-1-foundations`, `Leios`, `era: dijkstra`
 **Milestone:** 1. Foundations: interface, types, and parameters
@@ -483,7 +483,7 @@ Full-roadmap counterpart: M1-2.
 
 ---
 
-### Issue M1-4: Protocol parameters: the Leios block
+### Issue M1-4: Protocol parameters: the Leios block (#5)
 
 **Labels:** `milestone-1-foundations`, `Leios`, `era: dijkstra`
 **Milestone:** 1. Foundations: interface, types, and parameters
@@ -508,7 +508,7 @@ Full-roadmap counterpart: M1-3.
 
 ---
 
-### Issue M1-5: Pool registration: voting key and proof of possession
+### Issue M1-5: Pool registration: voting key and proof of possession (#6)
 
 **Labels:** `milestone-1-foundations`, `Leios`, `era: dijkstra`
 **Milestone:** 1. Foundations: interface, types, and parameters
@@ -536,7 +536,7 @@ Full-roadmap counterpart: M1-4.
 
 <!-- BEGIN GENERATED: milestone-2 -->
 
-### Issue M2-1: `Leios.Committee`: seats, weights, quorum arithmetic
+### Issue M2-1: `Leios.Committee`: seats, weights, quorum arithmetic (#7)
 
 **Labels:** `milestone-2-validity`, `Leios`, `era: dijkstra`
 **Milestone:** 2. Validity: committee, votes, certificates, endorser blocks
@@ -566,7 +566,7 @@ Full-roadmap counterpart: M1-5.
 
 ---
 
-### Issue M2-2: Vote validity
+### Issue M2-2: Vote validity (#8)
 
 **Labels:** `milestone-2-validity`, `Leios`, `era: dijkstra`
 **Milestone:** 2. Validity: committee, votes, certificates, endorser blocks
@@ -587,7 +587,7 @@ Full-roadmap counterpart: M2-3.
 
 ---
 
-### Issue M2-3: Certificate validity
+### Issue M2-3: Certificate validity (#9)
 
 **Labels:** `milestone-2-validity`, `Leios`, `era: dijkstra`
 **Milestone:** 2. Validity: committee, votes, certificates, endorser blocks
@@ -611,7 +611,7 @@ Full-roadmap counterpart: M2-4.
 
 ---
 
-### Issue M2-4: EB validity: `ValidEB`
+### Issue M2-4: EB validity: `ValidEB` (#10)
 
 **Labels:** `milestone-2-validity`, `Leios`, `era: dijkstra`
 **Milestone:** 2. Validity: committee, votes, certificates, endorser blocks
@@ -644,7 +644,7 @@ interface deferred to follow-up).
 
 <!-- BEGIN GENERATED: milestone-3 -->
 
-### Issue M3-1: Block structure: announcement, certificate, payload
+### Issue M3-1: Block structure: announcement, certificate, payload (#11)
 
 **Labels:** `milestone-3-integration`, `Leios`, `era: dijkstra`
 **Milestone:** 3. Integration: block and chain rules
@@ -665,7 +665,7 @@ Full-roadmap counterpart: M3-1.
 
 ---
 
-### Issue M3-2: BBODY: certificate check and certified-EB application
+### Issue M3-2: BBODY: certificate check and certified-EB application (#12)
 
 **Labels:** `milestone-3-integration`, `Leios`, `era: dijkstra`
 **Milestone:** 3. Integration: block and chain rules
@@ -691,7 +691,7 @@ which is follow-up).
 
 ---
 
-### Issue M3-3: CHAIN: pending announcement, timing window, epoch pin
+### Issue M3-3: CHAIN: pending announcement, timing window, epoch pin (#13)
 
 **Labels:** `milestone-3-integration`, `Leios`, `era: dijkstra`
 **Milestone:** 3. Integration: block and chain rules
@@ -722,7 +722,7 @@ Full-roadmap counterpart: M3-3.
 
 ---
 
-### Issue M3-4: Worked example, umbrella module, wrap-up
+### Issue M3-4: Worked example, umbrella module, wrap-up (#14)
 
 **Labels:** `milestone-3-integration`, `Leios`, `era: dijkstra`, `documentation`
 **Milestone:** 3. Integration: block and chain rules
