@@ -77,6 +77,13 @@ instance
     ; adHashingScheme = isHashableSet-ℕ
     ; Hashable-ScriptIntegrity = record { hash = λ x → 0 }
     ; tokenAlgebra    = Coin-TokenAlgebra
+    ; leiosAbstract   = record
+        { VotingKey = ℕ ; KeyProof = ℕ ; VotingSig = ℕ ; AggSig = ℕ ; EBHash = ℕ
+        ; validKeyProof = λ _ _ → ⊤
+        ; isSignedVote  = λ _ _ _ → ⊤
+        ; isSignedAgg   = λ _ _ _ → ⊤
+        ; hashEBRefs    = λ _ → 0
+        }
     }
 
 open TransactionStructure HSTransactionStructure public

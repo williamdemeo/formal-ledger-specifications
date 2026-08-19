@@ -13,6 +13,7 @@ open import Class.DecEq
 open import Ledger.Core.Specification.Crypto
 open import Ledger.Core.Specification.Epoch
 open import Ledger.Dijkstra.Specification.Script.Base
+open import Ledger.Dijkstra.Specification.Leios.Abstract
 import Ledger.Dijkstra.Specification.PParams
 
 record GovStructure : Type₁ where
@@ -36,6 +37,9 @@ record GovStructure : Type₁ where
 
   field govParams : GovParams
   open GovParams govParams public
+
+  field leiosAbstract : LeiosAbstract epochStructure TxId
+  open LeiosAbstract leiosAbstract public
 
   open import Ledger.Core.Specification.Address Network KeyHash ScriptHash public
 ```

@@ -25,6 +25,7 @@ open import Ledger.Prelude renaming (filterᵐ to filter)
 open import Ledger.Core.Specification.Crypto
 open import Ledger.Core.Specification.Epoch
 open import Ledger.Dijkstra.Specification.Gov.Base
+open import Ledger.Dijkstra.Specification.Leios.Abstract
 
 import Ledger.Core.Specification.Address renaming (RewardAddress to RewardAddress)
 import Ledger.Dijkstra.Specification.Certs
@@ -136,6 +137,7 @@ record TransactionStructure : Type₁ where
     govParams              : GovParams
     tokenAlgebra           : TokenAlgebra
     txidBytes              : TxId → Ser
+    leiosAbstract          : LeiosAbstract epochStructure TxId
 ```
 <!--
 ```agda
@@ -162,6 +164,7 @@ record TransactionStructure : Type₁ where
     ; scriptStructure = scriptStructure
     ; govParams = govParams
     ; globalConstants = globalConstants
+    ; leiosAbstract = leiosAbstract
     }
 ```
 <!--
