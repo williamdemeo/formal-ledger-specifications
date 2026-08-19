@@ -393,8 +393,7 @@ written back as a `(#N)` suffix.
 
 ### Issue M1-1: Design note: the skeleton's default decisions (#2)
 
-**Labels:** `milestone-1-foundations`, `Leios`, `documentation`, `discussion`
-**Milestone:** 1. Foundations: interface, types, and parameters
+**Labels:** `documentation`, `milestone-1-foundations`, `Leios`, `discussion`
 
 Two to three pages, timeboxed to two days, merged as
 `docs/leios/design-note.md` on `leios-main`.  It records the defaults
@@ -437,7 +436,6 @@ recorded defaults.
 ### Issue M1-2: `Leios.Abstract`: the abstract voting-crypto interface (#3)
 
 **Labels:** `milestone-1-foundations`, `Leios`, `era: dijkstra`
-**Milestone:** 1. Foundations: interface, types, and parameters
 
 New module `Ledger.Dijkstra.Specification.Leios.Abstract` with the
 `LeiosAbstract` record sketched in the plan's "Predicted new Agda
@@ -464,7 +462,6 @@ Full-roadmap counterpart: M1-1 (scoped down: Dijkstra-local, no
 ### Issue M1-3: `Leios.Types`: endorser blocks, votes, certificates (#4)
 
 **Labels:** `milestone-1-foundations`, `Leios`, `era: dijkstra`
-**Milestone:** 1. Foundations: interface, types, and parameters
 
 New module `Ledger.Dijkstra.Specification.Leios.Types` with
 `EndorserBlock` (ordered transaction references: id and declared size),
@@ -486,7 +483,6 @@ Full-roadmap counterpart: M1-2.
 ### Issue M1-4: Protocol parameters: the Leios block (#5)
 
 **Labels:** `milestone-1-foundations`, `Leios`, `era: dijkstra`
-**Milestone:** 1. Foundations: interface, types, and parameters
 
 Extend `PParams` in `Ledger.Dijkstra.Specification.PParams` with the
 nine Leios fields sketched in the plan (periods, sizes, `σ_c`, `τ`,
@@ -511,7 +507,6 @@ Full-roadmap counterpart: M1-3.
 ### Issue M1-5: Pool registration: voting key and proof of possession (#6)
 
 **Labels:** `milestone-1-foundations`, `Leios`, `era: dijkstra`
-**Milestone:** 1. Foundations: interface, types, and parameters
 
 Extend `StakePoolParams` in `Ledger.Dijkstra.Specification.Certs` with
 `votingKey : Maybe (VotingKey × KeyProof)` and make registration check
@@ -528,8 +523,6 @@ it.
 Estimated effort: 2 days.
 Full-roadmap counterpart: M1-4.
 
----
-
 <!-- END GENERATED: milestone-1 -->
 
 ## Milestone 2 — Validity: committee, votes, certificates, endorser blocks
@@ -539,7 +532,6 @@ Full-roadmap counterpart: M1-4.
 ### Issue M2-1: `Leios.Committee`: seats, weights, quorum arithmetic (#7)
 
 **Labels:** `milestone-2-validity`, `Leios`, `era: dijkstra`
-**Milestone:** 2. Validity: committee, votes, certificates, endorser blocks
 
 New module `Ledger.Dijkstra.Specification.Leios.Committee` with the
 `Seat`/`Committee` structures from the plan's sketches and the
@@ -569,7 +561,6 @@ Full-roadmap counterpart: M1-5.
 ### Issue M2-2: Vote validity (#8)
 
 **Labels:** `milestone-2-validity`, `Leios`, `era: dijkstra`
-**Milestone:** 2. Validity: committee, votes, certificates, endorser blocks
 
 In `Ledger.Dijkstra.Specification.Leios.Validity`: `ValidVote`, the
 ledger-checkable part of CIP-164's vote conditions.
@@ -590,7 +581,6 @@ Full-roadmap counterpart: M2-3.
 ### Issue M2-3: Certificate validity (#9)
 
 **Labels:** `milestone-2-validity`, `Leios`, `era: dijkstra`
-**Milestone:** 2. Validity: committee, votes, certificates, endorser blocks
 
 In `Leios.Validity`: `ValidCert`, the intrinsic checks of CIP-164's
 "Certificate Validation" section, against a given committee, total
@@ -614,7 +604,6 @@ Full-roadmap counterpart: M2-4.
 ### Issue M2-4: EB validity: `ValidEB` (#10)
 
 **Labels:** `milestone-2-validity`, `Leios`, `era: dijkstra`
-**Milestone:** 2. Validity: committee, votes, certificates, endorser blocks
 
 In `Leios.Validity`: `ValidEB`, the property a certificate certifies,
 per the sketch in the plan: reference/payload matching, nonemptiness,
@@ -636,8 +625,6 @@ Estimated effort: 3 days.
 Full-roadmap counterpart: M2-1 (with the full plan's M2-2 voting-state
 interface deferred to follow-up).
 
----
-
 <!-- END GENERATED: milestone-2 -->
 
 ## Milestone 3 — Integration: block and chain rules
@@ -647,7 +634,6 @@ interface deferred to follow-up).
 ### Issue M3-1: Block structure: announcement, certificate, payload (#11)
 
 **Labels:** `milestone-3-integration`, `Leios`, `era: dijkstra`
-**Milestone:** 3. Integration: block and chain rules
 
 Extend the block types in `Ledger.Dijkstra.Specification.BlockBody`:
 
@@ -668,7 +654,6 @@ Full-roadmap counterpart: M3-1.
 ### Issue M3-2: BBODY: certificate check and certified-EB application (#12)
 
 **Labels:** `milestone-3-integration`, `Leios`, `era: dijkstra`
-**Milestone:** 3. Integration: block and chain rules
 
 Extend the BBODY rule with the Leios premises, taking the pending
 announcement (from M3-3's chain context) as part of the environment:
@@ -694,7 +679,6 @@ which is follow-up).
 ### Issue M3-3: CHAIN: pending announcement, timing window, epoch pin (#13)
 
 **Labels:** `milestone-3-integration`, `Leios`, `era: dijkstra`
-**Milestone:** 3. Integration: block and chain rules
 
 Extend `ChainState` and the CHAIN rule in
 `Ledger.Dijkstra.Specification.Chain`:
@@ -724,8 +708,7 @@ Full-roadmap counterpart: M3-3.
 
 ### Issue M3-4: Worked example, umbrella module, wrap-up (#14)
 
-**Labels:** `milestone-3-integration`, `Leios`, `era: dijkstra`, `documentation`
-**Milestone:** 3. Integration: block and chain rules
+**Labels:** `documentation`, `milestone-3-integration`, `Leios`, `era: dijkstra`
 
 Close the six weeks with the artifacts that make the skeleton usable by
 others:
@@ -742,8 +725,6 @@ others:
 
 Estimated effort: 2 days (joint).
 Full-roadmap counterpart: parts of M0-9 and M5-3.
-
----
 
 <!-- END GENERATED: milestone-3 -->
 
