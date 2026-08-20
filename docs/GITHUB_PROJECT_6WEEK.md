@@ -14,7 +14,8 @@ engine.  Issue listings between BEGIN/END GENERATED markers are the
 input to the first `populate` run; after that they are regenerated from
 GitHub state by `update`.  Never run update before the first populate.
 
-STATUS: DRAFT, not yet populated.
+STATUS: populated to the fork 2026-08-18; the generated regions
+mirror the fork's issues.
 
     python3 <engine>/scripts/gh_project_lint.py     docs/GITHUB_PROJECT_6WEEK.md
     python3 <engine>/scripts/gh_project_populate.py docs/GITHUB_PROJECT_6WEEK.md --dry-run
@@ -36,9 +37,8 @@ Linear Leios (CIP-164) in the Dijkstra-era spec: the new types, the new
 protocol parameters, the voting key in pool registration, the
 committee, the validity predicates for votes, certificates, and
 endorser blocks, and the integration of certificate checking and
-certified-EB application into the BBODY and CHAIN rules.  Properties,
-conformance testing, and Haskell extraction are deliberately out of
-scope; they are collected in the Follow-up work section at the end,
+certified-EB application into the BBODY and CHAIN rules.  Properties, conformance testing, Haskell extraction, and reward or
+incentive changes are deliberately out of scope; they are collected in the Follow-up work section at the end,
 with pointers into the full roadmap (`docs/GITHUB_PROJECT.md`).
 
 Five decisions keep the scope this small; the design note (M1-1)
@@ -62,7 +62,9 @@ records them and circulates them, and none of them blocks the Agda:
 4.  **Committee as data, selection abstract first.**  The committee is
     a concrete data structure with quorum arithmetic; the stake-based
     truncation that produces it is specified abstractly (signature and
-    laws), with the concrete ordering attempted only if time allows.
+    laws); the order itself (descending stake, ties by ascending pool
+    id) is pinned as a law, and only the concrete construction may come
+    later.
 5.  **Defaults over debates.**  Where a design question has a CIP-164
     answer or a prototype precedent, the skeleton takes it and records
     it; implementer feedback is gathered in parallel and folded in
@@ -73,8 +75,8 @@ Work happens on `leios-main` under the workflow in `CONTRIBUTING.md`
 tracking issue is
 [#1295](https://github.com/IntersectMBO/formal-ledger-specifications/issues/1295).
 
-Budget check: the thirteen issues below carry effort estimates summing
-to about 34 person-days, against roughly 50 working days available to
+Budget check: the fourteen issues below carry effort estimates summing
+to about 36 person-days, against roughly 50 working days available to
 two people in six weeks; the slack absorbs review cycles and the
 unknowns that a skeleton always finds.
 
@@ -150,8 +152,10 @@ arithmetic), the other vote validity and `ValidEB`.
 `ValidVote`, `ValidCert`, and `ValidEB` type-check under `--safe`, each
 with a module-prose paragraph mapping its conjuncts to CIP-164's text
 (the six vote-casting conditions, the five certificate-validation
-checks), and each stated against the committee/quorum definitions of
-M2-1.
+checks), and each stated against
+the committee/quorum definitions of M2-1.  The committee order
+(descending stake, ties by ascending pool id) is pinned as a law of the
+selection function.
 
 Issue dependencies:
 
@@ -176,10 +180,12 @@ Weeks 5–6.  Put Leios into the rules: block-structure fields, the BBODY
 premises (certificate-or-transactions, certificate validity against the
 pinned committee, certified-EB application via `LEDGERS` from the
 announcing state), and the CHAIN threading (the pending announcement,
-the timing window, the epoch pin).  Ends with a worked example and a
+the timing window, the epoch
+pin), and a pinned cross-check against the protocol-level Agda spec
+(M3-5).  Ends with a worked example and a
 wrap-up pass that turns everything learned into the follow-up list.
-Suggested split: one person takes M3-1 and M3-2, the other M3-3; M3-4
-is joint.
+Suggested split: one person
+takes M3-1 and M3-2, the other M3-3 and M3-5; M3-4 is joint.
 
 **Exit criterion:**
 
@@ -187,7 +193,9 @@ The extended CHAIN rule type-checks under `--safe` and accepts exactly
 the story in the worked example: announce, wait out the window, certify
 with a valid quorum, apply the EB's transactions, reject a block whose
 certificate is invalid or early.  CI is green on `leios-main`, and the
-design note's as-built deltas are recorded.
+design note's as-built deltas are recorded.  The correspondence table
+against a pinned revision of ouroboros-leios-formal-spec exists, with
+divergences routed upstream.
 
 Issue dependencies:
 
@@ -199,7 +207,9 @@ graph TD
   M3_2["M3-2 BBODY: cert check + EB application"]
   M3_3["M3-3 CHAIN: context, window, epoch pin"]
   M3_4["M3-4 worked example + wrap-up"]
+  M3_5["M3-5 protocol-spec alignment"]
   M3_1 --> M3_2 --> M3_3 --> M3_4
+  M3_3 --> M3_5 --> M3_4
   M2_3 & M2_4 -.-> M3_2
 ```
 
@@ -395,41 +405,31 @@ written back as a `(#N)` suffix.
 
 **Labels:** `documentation`, `milestone-1-foundations`, `Leios`, `discussion`
 
-Two to three pages, timeboxed to two days, merged as
-`docs/leios/design-note.md` on `leios-main`.  It records the defaults
-this skeleton builds on, so that every later issue encodes rather than
-debates:
+Two to three pages, timeboxed to two days, merged as `docs/leios/design-note.md` on `leios-main`.  It records the defaults this skeleton builds on, so that every later issue encodes rather than debates:
 
-- [ ] Module placement: the `Leios` subtree of
-      `Ledger.Dijkstra.Specification` (the module map in
-      `docs/GITHUB_PROJECT_6WEEK.md`).
-- [ ] Certified application uses the full `LEDGERS` relation; reapply
-      is an implementation optimization to be justified by the
-      follow-up soundness theorem.
-- [ ] Environment and ordering: EB transactions apply from the
-      announcing block's post-BBODY state, before any tick to the
-      certifying block's slot; a certificate-bearing block carries no
-      transactions of its own (CIP-164).
-- [ ] Certificate failure is the absence of a BBODY transition; no
-      predicate-failure taxonomy in the skeleton.
-- [ ] Committee: epoch-fixed, stake-based truncation over registered
-      voting keys; pinned at announcement; keyless seats hold stake but
-      cannot sign.
-- [ ] Parameters: the CIP-164 Table 3 list plus the per-EB
-      reference-script bound from cardano-ledger #5965, with group
-      assignments.
-- [ ] Availability: the rules take the EB's transaction closure as
-      input, with a matching premise; no availability obligations.
-- [ ] The interface table: each function from the proposed
-      consensus↔ledger interface mapped to its skeleton counterpart or
-      marked follow-up/consensus-only.
+- [ ] Module placement: the `Leios` subtree of `Ledger.Dijkstra.Specification` (the module map in `docs/GITHUB_PROJECT_6WEEK.md`).
+- [ ] Certified application uses the full `LEDGERS` relation; reapply is an implementation optimization to be justified by the follow-up soundness theorem.
+- [ ] Environment and ordering: EB transactions apply from the announcing block's post-BBODY state, before any tick to the certifying block's slot; a certificate-bearing block carries no transactions of its own (CIP-164).
+- [ ] Certificate failure is the absence of a BBODY transition; no predicate-failure taxonomy in the skeleton.
+- [ ] Committee: epoch-fixed, stake-based truncation over registered voting keys; pinned at announcement; keyless seats hold stake but cannot sign.
+- [ ] Parameters: the CIP-164 Table 3 list plus the per-EB reference-script bound from cardano-ledger #5965, with group assignments.
+- [ ] Availability: the rules take the EB's transaction closure as input, with a matching premise; no availability obligations.
+- [ ] The interface table: each function from the proposed consensus↔ledger interface mapped to its skeleton counterpart or marked follow-up/consensus-only.
 
-Send the merged note to Dražen, Javier, Nicolas, Alexey, and Polina for
-comment; feedback is folded in during M3-4, never awaited.
+Send the merged note to Dražen, Javier, Nicolas, Alexey, and Polina for comment; feedback is folded in during M3-4, never awaited.
 
 Estimated effort: 2 days (joint).
-Full-roadmap counterpart: M0-9, compressing the M0-2..M0-8 corners into
-recorded defaults.
+
+Full-roadmap counterpart: M0-9, compressing the M0-2..M0-8 corners into recorded defaults.
+
+Amendments (2026-08-19 field review, from the Musashi trace-verifier work; shipped in commit 4f8b67f4e on this branch, PR #15):
+
+- [x] Pending-EB lifetime made explicit: any applied block replaces the pending announcement with its own (possibly absent) one; no announcement survives an intervening block (protocol-level spec: the certifiable EB is the one announced by `currentRB`, the head).
+- [x] Certifiability stated plainly: parameter well-formedness does not imply a reachable quorum; keyless seats hold coverage stake but cannot sign (Musashi 2026-08: 19 of 66 pools keyless, certificates on roughly 3% of blocks).
+- [x] The committee order (descending stake, ties by ascending pool id) is a stated law of the abstract selection function, with determinism required and the byte-exact pool-id comparison flagged upstream.
+- [x] Known constant divergence recorded: prototype `minCertificationGap` = 10 versus the formula's 14 with the Musashi parameters.
+- [x] The EB-identifier hash preimage marked as a conformance cliff (byte-exact preimage to be pinned before conformance testing).
+- [x] Rewards and incentives declared out of scope, with the CIP's own words.
 
 ---
 
@@ -437,25 +437,17 @@ recorded defaults.
 
 **Labels:** `milestone-1-foundations`, `Leios`, `era: dijkstra`
 
-New module `Ledger.Dijkstra.Specification.Leios.Abstract` with the
-`LeiosAbstract` record sketched in the plan's "Predicted new Agda
-types" section: abstract types for voting keys, signatures, aggregate
-signatures, proofs of possession, and EB hashes; verification
-predicates over the message `Slot × EBHash`; the EB-reference hash
-function; decidability instances.
+## Description
 
-- [ ] Define the record; keep it scheme-agnostic (CIP-164 Appendix A);
-      no concrete curve arithmetic, `--safe` throughout.
-- [ ] Thread it as a new field of `AbstractFunctions` in
-      `Ledger.Dijkstra.Specification.Abstract`, so downstream module
-      signatures do not change.
-- [ ] Module prose: one paragraph on the BLS12-381 instantiation and
-      the Peras-sharing intent, with the core-migration noted as
-      follow-up.
+New module `Ledger.Dijkstra.Specification.Leios.Abstract` with the `LeiosAbstract` record sketched in the plan's "Predicted new Agda types" section: abstract types for voting keys, signatures, aggregate
+signatures, proofs of possession, and EB hashes; verification predicates over the message `Slot × EBHash`; the EB-reference hash function; decidability instances.
 
-Estimated effort: 2 days.
-Full-roadmap counterpart: M1-1 (scoped down: Dijkstra-local, no
-`Ledger.Core` change).
+- [ ] Define the record; keep it scheme-agnostic (CIP-164 Appendix A); no concrete curve arithmetic, `--safe` throughout.
+- [ ] Thread it as a new field of `AbstractFunctions` in `Ledger.Dijkstra.Specification.Abstract`, so downstream module signatures do not change.
+- [ ] Module prose: one paragraph on the BLS12-381 instantiation and the Peras-sharing intent, with the core-migration noted as follow-up.
+
+Estimated effort: 2 days.  
+Full-roadmap counterpart: M1-1 (scoped down: Dijkstra-local, no `Ledger.Core` change).
 
 ---
 
@@ -463,19 +455,15 @@ Full-roadmap counterpart: M1-1 (scoped down: Dijkstra-local, no
 
 **Labels:** `milestone-1-foundations`, `Leios`, `era: dijkstra`
 
-New module `Ledger.Dijkstra.Specification.Leios.Types` with
-`EndorserBlock` (ordered transaction references: id and declared size),
-`Announcement`, `Vote`, and `Certificate`, per the sketches in the
-plan.
+New module `Ledger.Dijkstra.Specification.Leios.Types` with `EndorserBlock` (ordered transaction references: id and declared size), `Announcement`, `Vote`, and `Certificate`, per the sketches in the plan.
 
 - [ ] Records and `DecEq` instances; EB identifier via `hashEBRefs`.
-- [ ] Decide the duplicate-freedom representation (validity condition
-      versus proof field) and record the choice in module prose.
-- [ ] Module prose maps each type to its CIP-164 CDDL counterpart
-      (Appendix B), including the note that the header's
-      `certified_eb` bit is spec-derived.
+- [ ] Module prose marks the EB-identifier boundary as a known conformance cliff: the identifier is `hashEBRefs` of the reference structure with the byte-exact preimage deliberately unpinned; pinning it is a named follow-up prerequisite for conformance testing (Cardano precedent: the block-body hash's segmented preimage exists only in implementation internals).
+- [ ] Decide the duplicate-freedom representation (validity condition versus proof field) and record the choice in module prose.
+- [ ] Module prose maps each type to its CIP-164 CDDL counterpart (Appendix B), including the note that the header's `certified_eb` bit is spec-derived.
 
 Estimated effort: 2 days.
+
 Full-roadmap counterpart: M1-2.
 
 ---
@@ -533,27 +521,16 @@ Full-roadmap counterpart: M1-4.
 
 **Labels:** `milestone-2-validity`, `Leios`, `era: dijkstra`
 
-New module `Ledger.Dijkstra.Specification.Leios.Committee` with the
-`Seat`/`Committee` structures from the plan's sketches and the
-arithmetic that vote and certificate validity consume.
+New module `Ledger.Dijkstra.Specification.Leios.Committee` with the `Seat`/`Committee` structures from the plan's sketches and the arithmetic that vote and certificate validity consume.
 
-- [ ] `Seat` (pool, optional voting key, stake) and `Committee` (a
-      seat list whose order fixes voter indices), with `seatAt`,
-      `committeeSize`, `signersStake`, and the keys of a signer set.
-- [ ] Quorum: `signersStake s ≥ τ * totalActiveStake`, stated over
-      `Coin` and `UnitInterval` the way the rest of the spec does
-      rational comparisons.
-- [ ] `selectCommittee : UnitInterval → (KeyHash ⇀ Coin) → Pools →
-      Committee`, abstractly: state the signature and its laws
-      (members are registered-and-keyed pools ordered by descending
-      stake up to coverage `σ_c`; keyless seats per the design note).
-      Attempt the concrete descending-order construction only if time
-      allows; otherwise leave it a module parameter with the laws as
-      fields and record that as follow-up.
-- [ ] A worked example in module prose: a five-pool stake distribution,
-      the resulting seats and indices.
+- [ ] `Seat` (pool, optional voting key, stake) and `Committee` (a seat list whose order fixes voter indices), with `seatAt`, `committeeSize`, `signersStake`, `keyedStake` (the stake of the keyed seats), and the keys of a signer set.
+- [ ] Quorum: `signersStake s ≥ τ * totalActiveStake`, stated over `Coin` and `UnitInterval` the way the rest of the spec does rational comparisons.
+- [ ] `selectCommittee : UnitInterval → (KeyHash ⇀ Coin) → Pools → Committee`, abstractly: state the signature and its laws, and pin the order in the laws even though the construction may come later.  The laws: membership is stake-based truncation at coverage `σ_c` over the epoch's pool-stake distribution, independent of voting-key registration (keyless seats occupy their places; design doc REQ-KeylessSeat); the seat order is descending stake with ties broken by ascending pool id (design doc "Committee selection"; the prototype stable-sorts by pool id).  The order is consensus-critical: certificate bitfields address seat indices, and near-tie pools reshuffle indices every epoch on the testnet, so determinism is a law, not a nicety.  The tie-break needs a total order on the pool-id type; introduce it as a module parameter or instance, and flag the byte-exact comparison as a conformance detail to confirm upstream.
+- [ ] `certifiable`: define (as a plain definition, never a rule premise) the reachability predicate `keyedStake committee ≥ τ · totalActiveStake`, and record in module prose that parameter well-formedness (`τ < σ_c`) does not imply it: keyless seats hold coverage stake but cannot sign.
+- [ ] Worked examples in module prose: (a) a five-pool stake distribution, the resulting seats and indices, including an equal-stake tie resolved by pool id; (b) a keyless-heavy committee where every rule is satisfied and yet `certifiable` fails (the Musashi shape: 19 of 66 pools keyless, certificates on roughly 3% of blocks).
 
-Estimated effort: 4 days (the hardest module: ordering and arithmetic).
+Estimated effort: 4.5 days (the hardest module: ordering and arithmetic).
+
 Full-roadmap counterpart: M1-5.
 
 ---
@@ -582,21 +559,16 @@ Full-roadmap counterpart: M2-3.
 
 **Labels:** `milestone-2-validity`, `Leios`, `era: dijkstra`
 
-In `Leios.Validity`: `ValidCert`, the intrinsic checks of CIP-164's
-"Certificate Validation" section, against a given committee, total
-active stake, and expected announcement.
+In `Leios.Validity`: `ValidCert`, the intrinsic checks of CIP-164's "Certificate Validation" section, against a given committee, total active stake, and expected announcement.
 
-- [ ] Signers are seat indices of the committee; the aggregate
-      signature verifies over the signers' keys and `(cSlot , cEB)`.
+- [ ] Signers are indices of keyed seats of the committee: no bit set on a keyless seat; a certificate whose bitfield names a keyless seat is invalid (design doc REQ-LedgerCertificateVerification).  The aggregate signature verifies over the signers' keys and `(cSlot , cEB)`.
 - [ ] Quorum: the signers' stake meets `τ` (arithmetic from M2-1).
-- [ ] Consistency: the certificate's slot and EB hash equal the
-      expected announcement (the contextual half is supplied by BBODY
-      in M3-2, which passes the pinned pending announcement).
-- [ ] Module prose maps the five CIP checks to conjuncts (CDDL
-      compliance is structural typing; the rest are explicit).
+- [ ] Consistency: the certificate's slot and EB hash equal the expected announcement (the contextual half is supplied by BBODY in M3-2, which passes the pinned pending announcement).
+- [ ] Module prose maps the five CIP checks to conjuncts (CDDL compliance is structural typing; the rest are explicit).
 - [ ] Decidability instance.
 
 Estimated effort: 2 days.
+
 Full-roadmap counterpart: M2-4.
 
 ---
@@ -680,28 +652,17 @@ which is follow-up).
 
 **Labels:** `milestone-3-integration`, `Leios`, `era: dijkstra`
 
-Extend `ChainState` and the CHAIN rule in
-`Ledger.Dijkstra.Specification.Chain`:
+Extend `ChainState` and the CHAIN rule in `Ledger.Dijkstra.Specification.Chain`:
 
-- [ ] `leiosPending : Maybe PendingEB` in the chain state: the
-      predecessor's announcement with its slot, the committee pinned at
-      the announcing epoch, and the total active stake used for the
-      quorum.
-- [ ] Window premise: a certificate is admissible only when the
-      certifying block's slot is at least
-      `3·L_hdr + L_vote + L_diff` after the announcing slot; there is
-      no later opportunity, and an unconsumed announcement is simply
-      replaced by the next one (no other trace).
-- [ ] The pin realizes the epoch-straddle default: a certificate
-      landing after an epoch boundary is still checked against the
-      announcing epoch's committee.  Parameter changes inside the
-      window follow the design-note default; record the choice in
-      module prose (the CIP is silent, so this is one to surface to
-      the implementers).
-- [ ] Ordering relative to the epoch machinery per the design note
-      (EB application from the pre-tick announcing state).
+- [ ] `leiosPending : Maybe PendingEB` in the chain state: the immediate parent's announcement with its slot, the committee pinned at the announcing epoch, and the total active stake used for the quorum.
+- [ ] Pending-EB lifetime: `leiosPending` is a function of the block just applied.  CHAIN replaces it, unconditionally, with that block's own announcement (nothing when the block announces nothing).  Announcements are optional, so an intervening announcement-less block ends the certifiability of its parent's EB; a certificate is admissible only for the EB announced by the immediate parent.  This matches CIP-164's direct-successor rule and the protocol-level spec, where the certifiable EB is the one announced by `currentRB`, the chain head (ouroboros-leios-formal-spec: `Leios/Protocol.lagda.md`, and the `Base₂` certificate premise in `Linear.lagda.md`).
+- [ ] Window premise: a certificate is admissible only when the certifying block's slot is at least `3·L_hdr + L_vote + L_diff` after the announcing slot; there is no later opportunity.
+- [ ] Known implementation divergence, recorded in module prose and flagged upstream (the M1-5 proof-of-possession note is the pattern): the prototype's `minCertificationGap` is 10 slots, while the formula gives 14 with the Musashi parameters; both sides are live and have been measured by the trace-verifier work.
+- [ ] The pin realizes the epoch-straddle default: a certificate landing after an epoch boundary is still checked against the announcing epoch's committee.  Parameter changes inside the window follow the design-note default; record the choice in module prose (the CIP is silent, so this is one to surface to the implementers).
+- [ ] Ordering relative to the epoch machinery per the design note (EB application from the pre-tick announcing state).
 
 Estimated effort: 4 days.
+
 Full-roadmap counterpart: M3-3.
 
 ---
@@ -710,20 +671,16 @@ Full-roadmap counterpart: M3-3.
 
 **Labels:** `documentation`, `milestone-3-integration`, `Leios`, `era: dijkstra`
 
-Close the six weeks with the artifacts that make the skeleton usable by
-others:
+Close the six weeks with the artifacts that make the skeleton usable by others:
 
-- [ ] A slot-by-slot worked example in module prose (in `Chain` or the
-      `Leios` umbrella): announce, window, certify, apply; one negative
-      case (early certificate) and one epoch-straddle case.
-- [ ] The `Leios.lagda.md` umbrella module with the overview prose
-      (iterative-deepening style, per house convention).
-- [ ] Fold in any implementer feedback on the design note received
-      since M1-1; record as-built deltas in the note.
-- [ ] Update the follow-up list in this plan from what the six weeks
-      actually surfaced; confirm CI is green on `leios-main`.
+- [ ] A slot-by-slot worked example in module prose (in `Chain` or the `Leios` umbrella): announce, window, certify, apply; plus the negative cases the field data says matter: an early certificate, an intervening announcement-less block that ends its parent EB's certifiability, and a keyless-heavy committee period in which no certificate can exist although every rule holds; plus an epoch-straddle case.
+- [ ] The `Leios.lagda.md` umbrella module with the overview prose (iterative-deepening style, per house convention).
+- [ ] Fold in any implementer feedback on the design note received since M1-1; record as-built deltas in the note.
+- [ ] Re-check the protocol-spec correspondence table (M3-5) against the then-current tip of ouroboros-leios-formal-spec; record any drift.
+- [ ] Update the follow-up list in this plan from what the six weeks actually surfaced; confirm CI is green on `leios-main`.
 
-Estimated effort: 2 days (joint).
+Estimated effort: 2.5 days (joint).
+
 Full-roadmap counterpart: parts of M0-9 and M5-3.
 
 <!-- END GENERATED: milestone-3 -->
@@ -765,6 +722,13 @@ reference.
    already gives (full plan M3-4).
 +  **Key rotation** — real rotation semantics when the CIP-164
    follow-up amendment lands (tracked in M1-5's prose meanwhile).
++  **Byte-exact EB-hash preimage** — the `hashEBRefs` abstraction leaves
+   the EB identifier's preimage unpinned; pin it (with upstream) before
+   conformance testing, or the cliff gets reverse-engineered later.
++  **Rewards and incentives** — none are modeled and CIP-164 requires
+   none ("Leios does not require any changes to incentives in Cardano");
+   if a Leios incentive mechanism ever becomes normative it enters
+   through the full roadmap.
 
 ---
 
