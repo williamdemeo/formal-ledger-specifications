@@ -15,7 +15,7 @@ exactly this verification surface, leaving the concrete signature scheme
 abstract in the manner of `PKKScheme`{.AgdaRecord}.
 
 The module is parameterized by the era's epoch structure, of which only the
-slot type is used, and by the type of transaction identifiers.
+slot type is used.
 
 <!--
 ```agda
@@ -26,7 +26,6 @@ open import Ledger.Core.Specification.Epoch
 
 module Ledger.Dijkstra.Specification.Leios.Abstract
   (es : _) (open EpochStructure es using (Slot))
-  (TxId : Type)
   where
 ```
 -->
@@ -39,12 +38,14 @@ record LeiosAbstract : Type₁ where
     VotingSig  : Type
     AggSig     : Type
     EBHash     : Type
+    TxRefHash  : Type
 ```
 
 A voting key registers together with a `KeyProof`{.AgdaField}, its proof of
 possession; each vote carries a `VotingSig`{.AgdaField}, and a certificate
 carries a single `AggSig`{.AgdaField} for its whole quorum; an endorser block
-is identified by its `EBHash`{.AgdaField}.
+is identified by its `EBHash`{.AgdaField}, and each transaction it references
+by a `TxRefHash`{.AgdaField}.
 
 *Verification predicates*
 ```agda
@@ -65,13 +66,16 @@ the keys of the voters it lists.
 
 *The endorser-block identifier*
 ```agda
-    hashEBRefs     : List (TxId × ℕ) → EBHash
+    hashEBRefs     : List (TxRefHash × ℕ) → EBHash
 ```
 
 An endorser block is an ordered list of transaction references — pairs of a
-transaction id and a declared byte size — and its identifier is the hash of
+reference hash and a declared byte size — and its identifier is the hash of
 that reference structure, so the identifier is checkable before any
-referenced transaction data arrives.
+referenced transaction data arrives.  A reference hash covers the complete
+transaction bytes, witnesses included; the ledger's transaction id identifies
+only the transaction body, so it could not pin the exact transactions the
+voters validated.
 
 <!--
 ```agda
@@ -85,10 +89,11 @@ referenced transaction data arrives.
     ⦃ DecEq-VotingSig ⦄ : DecEq VotingSig
     ⦃ DecEq-AggSig    ⦄ : DecEq AggSig
     ⦃ DecEq-EBHash    ⦄ : DecEq EBHash
+    ⦃ DecEq-TxRefHash ⦄ : DecEq TxRefHash
 ```
 -->
 
-All five types have decidable equality and all three predicates are
+All six types have decidable equality and all three predicates are
 decidable.  Unlike `PKKScheme`{.AgdaRecord}, the record exposes no signing or
 aggregation functions and no correctness law relating them: key generation,
 vote signing, and aggregation happen in the node, outside the ledger, so only

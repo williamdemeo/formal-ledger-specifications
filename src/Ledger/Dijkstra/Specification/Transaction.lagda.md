@@ -137,7 +137,7 @@ record TransactionStructure : Type₁ where
     govParams              : GovParams
     tokenAlgebra           : TokenAlgebra
     txidBytes              : TxId → Ser
-    leiosAbstract          : LeiosAbstract epochStructure TxId
+    leiosAbstract          : LeiosAbstract epochStructure
 ```
 <!--
 ```agda

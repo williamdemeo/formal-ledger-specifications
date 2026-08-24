@@ -78,7 +78,7 @@ instance
     ; Hashable-ScriptIntegrity = record { hash = λ x → 0 }
     ; tokenAlgebra    = Coin-TokenAlgebra
     ; leiosAbstract   = record
-        { VotingKey = ℕ ; KeyProof = ℕ ; VotingSig = ℕ ; AggSig = ℕ ; EBHash = ℕ
+        { VotingKey = ℕ ; KeyProof = ℕ ; VotingSig = ℕ ; AggSig = ℕ ; EBHash = ℕ ; TxRefHash = ℕ
         ; validKeyProof = λ _ _ → ⊤
         ; isSignedVote  = λ _ _ _ → ⊤
         ; isSignedAgg   = λ _ _ _ → ⊤

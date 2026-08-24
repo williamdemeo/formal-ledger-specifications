@@ -38,7 +38,7 @@ record GovStructure : Type₁ where
   field govParams : GovParams
   open GovParams govParams public
 
-  field leiosAbstract : LeiosAbstract epochStructure TxId
+  field leiosAbstract : LeiosAbstract epochStructure
   open LeiosAbstract leiosAbstract public
 
   open import Ledger.Core.Specification.Address Network KeyHash ScriptHash public
