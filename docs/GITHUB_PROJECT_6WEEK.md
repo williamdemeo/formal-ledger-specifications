@@ -429,7 +429,7 @@ Full-roadmap counterpart: M0-9, compressing the M0-2..M0-8 corners into recorded
 Amendments (2026-08-19 field review, from the Musashi trace-verifier work; shipped in commit 4f8b67f4e on this branch, PR #15):
 
 - [x] Pending-EB lifetime made explicit: any applied block replaces the pending announcement with its own (possibly absent) one; no announcement survives an intervening block (protocol-level spec: the certifiable EB is the one announced by `currentRB`, the head).
-- [x] Certifiability stated plainly: parameter well-formedness does not imply a reachable quorum; keyless seats hold coverage stake but cannot sign (Musashi 2026-08: 19 of 66 pools keyless, certificates on roughly 3% of blocks).
+- [x] Certifiability stated plainly: parameter well-formedness does not imply a reachable quorum; keyless seats hold coverage stake but cannot sign (field evidence: the Musashi certification outage of 2026-08-12/13, ouroboros-leios#1046 — participating weight at 73% against a 75% quorum).
 - [x] The committee order (descending stake, ties by ascending pool id) is a stated law of the abstract selection function, with determinism required and the byte-exact pool-id comparison flagged upstream.
 - [x] Known constant divergence recorded: prototype `minCertificationGap` = 10 versus the formula's 14 with the Musashi parameters.
 - [x] The EB-identifier hash preimage marked as a conformance cliff (byte-exact preimage to be pinned before conformance testing).
