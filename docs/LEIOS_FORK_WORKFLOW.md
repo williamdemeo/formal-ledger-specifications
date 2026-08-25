@@ -108,14 +108,41 @@ never run update before the first populate (it rebuilds the generated
 regions from GitHub, which for an unpopulated plan means erasing every
 authored issue body).
 
-## Upstream transition (when Carlos is back)
+## Upstream transition (per-issue migration)
 
-Bottom of the stack first: push `leios-design-note` to origin, open the
-PR against upstream `leios-main` reusing the fork PR's description, and
-retarget each subsequent PR as its predecessor merges (the usual
-stacked flow).  The roadmaps go upstream separately, from the pristine
-copies, once the team adopts the plan; upstream populate happens only
-then, and only with team agreement.
+Adopted 2026-08-24, on Carlos's suggestion: issues migrate upstream one
+at a time, as work on each completes, as SUB-ISSUES of the umbrella
+tracking issue IntersectMBO#1295, titled with an `[LLFN-k]` prefix (the
+upstream twin of the fork's `[MN-k]`; first pair: `[LLF1-1]` =
+IntersectMBO#1296 ↔ fork #2).  History travels with the branch; never
+restart work on a fresh branch cut from the upstream issue page.
+
+Per-issue ritual:
+
+1.  William creates the upstream sub-issue `[LLFN-k] …` under #1295,
+    its body edited from the fork issue.
+2.  Sync the mirror (`git fetch origin`); the branch already bases on
+    upstream `leios-main`, so rebase only if upstream has moved.
+3.  Push the SAME local branch to origin under the upstream naming
+    convention (`<upstream-issue#>-<slug>`), leaving the fork branch
+    name untouched so the fork PR survives until closed:
+
+        git push origin m1-1-leios-design-note:refs/heads/1296-llf-design-note
+
+4.  Open the upstream PR (base `leios-main`), its body edited from the
+    fork PR's, with `Closes #<upstream-issue>` — that line also links
+    the PR into the issue's Development section.  This is the PR Carlos
+    reviews and merges; do not request the review (William's action).
+5.  Close the fork PR and the fork issue with a comment pointing at
+    their upstream twins; the plan file records the closure at the next
+    `update`.
+6.  A stacked successor (m1-2 on m1-1) waits for the predecessor's
+    upstream merge, rebases onto the refreshed `leios-main` mirror,
+    then repeats this ritual under its own `[LLFN-k]` sub-issue.
+
+The roadmap files go upstream separately, from the pristine copies,
+once the team adopts the plan; upstream populate happens only then, and
+only with team agreement.
 
 ## Provenance
 
