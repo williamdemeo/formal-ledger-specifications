@@ -129,7 +129,7 @@ graph TD
   M1_2["M1-2 Leios.Abstract: voting-crypto interface"]
   M1_3["M1-3 Leios.Types: EB, vote, certificate"]
   M1_4["M1-4 protocol parameters"]
-  M1_5["M1-5 pool registration: voting key + PoP"]
+  M1_5["M1-5 pool registration: voting key + proof of possession"]
   M1_1 --> M1_2 & M1_4
   M1_2 --> M1_3 & M1_5
 ```
@@ -163,7 +163,7 @@ Issue dependencies:
 ```mermaid
 graph TD
   M1_3["M1-3 Leios.Types"]
-  M2_1["M2-1 Leios.Committee"]
+  M2_1["M2-1 committee + quorum arithmetic"]
   M2_2["M2-2 vote validity"]
   M2_3["M2-3 certificate validity"]
   M2_4["M2-4 EB validity (ValidEB)"]
@@ -233,33 +233,32 @@ graph TD
 ## Module map
 
 New modules slot under `Ledger.Dijkstra.Specification` as a `Leios`
-subtree; four existing modules get edits.  Everything below takes the
-same `(txs : TransactionStructure) (abs : AbstractFunctions txs)`
-telescope as its siblings, so protocol parameters, crypto, and epoch
-structure are ambient in the usual way.
+subtree; six existing modules get edits.  Rule modules keep their usual
+`(txs : TransactionStructure) (abs : AbstractFunctions txs)` telescope,
+so protocol parameters, crypto, and epoch structure stay ambient.
 
 ```text
 src/Ledger/Dijkstra/Specification/
-├── Leios.lagda.md              -- NEW  umbrella: overview prose, re-exports
 ├── Leios/
 │   ├── Abstract.lagda.md       -- NEW  LeiosAbstract: abstract voting crypto (M1-2)
 │   ├── Types.lagda.md          -- NEW  EndorserBlock, Vote, Certificate, ... (M1-3)
-│   ├── Committee.lagda.md      -- NEW  Seat, Committee, quorum arithmetic (M2-1)
-│   └── Validity.lagda.md       -- NEW  ValidVote, ValidCert, ValidEB (M2-2..M2-4)
-├── Abstract.lagda.md           -- EDIT +leiosAbstract field in AbstractFunctions (M1-2)
+│   └── Validity.lagda.md       -- NEW  Seat, Committee, quorum arithmetic (M2-1);
+│                               --      ValidVote, ValidCert, ValidEB (M2-2..M2-4)
+├── Gov/Base.lagda.md           -- EDIT +leiosAbstract field in GovStructure (M1-2)
+├── Transaction.lagda.md        -- EDIT supply leiosAbstract via TransactionStructure (M1-2)
 ├── PParams.lagda.md            -- EDIT +Leios parameter block, groups, τ<σ_c (M1-4)
-├── Certs.lagda.md              -- EDIT +votingKey in StakePoolParams, PoP premise (M1-5)
+├── Certs.lagda.md              -- EDIT +votingKey in StakePoolParams, proof-of-possession premise (M1-5)
 ├── BlockBody.lagda.md          -- EDIT +announcement/cert fields, BBODY premises (M3-1, M3-2)
-└── Chain.lagda.md              -- EDIT +LeiosContext threading, window check (M3-3)
+└── Chain.lagda.md              -- EDIT +PendingEB threading, window check (M3-3)
 ```
 
 Import order (each layer sees the previous ones):
-`Leios.Abstract` → `Leios.Types` → `Leios.Committee` → `Leios.Validity`
-→ `BlockBody` → `Chain`.  Threading the abstract crypto as a new field
-of `AbstractFunctions` (rather than a new module parameter) means the
-signatures of `BlockBody` and `Chain` do not change, so downstream
-modules (`Computational`, `Foreign`, the umbrella) keep compiling with
-minimal churn.  Since `BlockBody` imports the Leios modules, the era's
+`Leios.Abstract` → `Leios.Types` → `Leios.Validity` → `BlockBody` →
+`Chain`.  Threading the abstract crypto as a `GovStructure` field
+supplied through `TransactionStructure` (rather than a new module
+parameter) means the signatures of `BlockBody` and `Chain` do not
+change, so downstream modules (`Computational`, `Foreign`) keep
+compiling with minimal churn.  Since `BlockBody` imports the Leios modules, the era's
 import closure (and hence CI and the docs site) picks them up
 automatically.
 
@@ -323,7 +322,7 @@ record Certificate : Type where
 ```
 
 ```agda
--- Leios/Committee.lagda.md
+-- Leios/Validity.lagda.md (committee structures)
 record Seat : Type where
   field
     seatPool  : KeyHash
@@ -506,11 +505,11 @@ Estimated effort: 2 days.  Full-roadmap counterpart: M1-4.
 
 <!-- BEGIN GENERATED: milestone-2 -->
 
-### Issue M2-1: `Leios.Committee`: seats, weights, quorum arithmetic (#7)
+### Issue M2-1: Committee, seats, and quorum arithmetic (in `Leios.Validity`) (#7)
 
 **Labels:** `milestone-2-validity`, `Leios`, `era: dijkstra`
 
-New module `Ledger.Dijkstra.Specification.Leios.Committee` with the `Seat`/`Committee` structures from the plan's sketches and the arithmetic that vote and certificate validity consume.
+In `Ledger.Dijkstra.Specification.Leios.Validity`, the module shared with M2-2..M2-4 (the separate `Leios.Committee` module was folded into it by the 2026-08-25 design decision): the `Seat`/`Committee` structures from the plan's sketches and the arithmetic that vote and certificate validity consume.
 
 - [ ] `Seat` (pool, optional voting key, stake) and `Committee` (a seat list whose order fixes voter indices), with `seatAt`, `committeeSize`, `signersStake`, `keyedStake` (the stake of the keyed seats), and the keys of a signer set.
 - [ ] Quorum: `signersStake s ≥ τ * totalActiveStake`, stated over `Coin` and `UnitInterval` the way the rest of the spec does rational comparisons.
@@ -628,8 +627,8 @@ Full-roadmap counterpart: M3-3.
 
 Close the six weeks with the artifacts that make the LLF usable by others:
 
-- [ ] A slot-by-slot worked example in module prose (in `Chain` or the `Leios` umbrella): announce, window, certify, apply; plus the negative cases the field data says matter: an early certificate, an intervening announcement-less block that ends its parent EB's certifiability, and a keyless-heavy committee period in which no certificate can exist although every rule holds; plus an epoch-straddle case.
-- [ ] The `Leios.lagda.md` umbrella module with the overview prose (iterative-deepening style, per house convention).
+- [ ] A slot-by-slot worked example in module prose (in `Chain` or `Leios.Validity`): announce, window, certify, apply; plus the negative cases the field data says matter: an early certificate, an intervening announcement-less block that ends its parent EB's certifiability, and a keyless-heavy committee period in which no certificate can exist although every rule holds; plus an epoch-straddle case.
+- [ ] Overview prose tying the Leios pieces together, in the `Leios.Validity` and `Chain` module headers, iterative-deepening style per house convention (the umbrella re-export module was cut from the design, 2026-08-25).
 - [ ] Fold in any implementer feedback on the design note received since M1-1; record as-built deltas in the note.
 - [ ] Re-check the protocol-spec correspondence table (M3-5) against the then-current tip of ouroboros-leios-formal-spec; record any drift.
 - [ ] Update the follow-up list in this plan from what the six weeks actually surfaced; confirm CI is green on `leios-main`.
