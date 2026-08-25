@@ -436,7 +436,11 @@ Decide the following before any module is written:
 - [ ] **Parameterization.**  Whether Leios structures enter
       `TransactionStructure` / `AbstractFunctions` as new fields, or a
       separate parameter record (say `LeiosStructure`) threaded only to
-      the modules that need it.
+      the modules that need it.  (Settled in the fork trial: a
+      `LeiosAbstract` record as a `GovStructure` field, supplied
+      through `TransactionStructure`; an `AbstractFunctions` field
+      cannot reach the registration rule's proof-of-possession
+      premise.)
 - [ ] **Branch discipline.**  Which parts are Leios-independent and go
       to `master` first (candidate: the BLS abstraction in
       `Ledger.Core`), and the cadence for merging `master` into

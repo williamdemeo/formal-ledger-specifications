@@ -23,7 +23,7 @@ mirror the fork's issues.
 
 # Leios ledger formalization — six-week core plan
 
-**Project Title**:  The Leios Ledger Formalization (LLF) — CIP-164 ledger rules in the Dijkstra era
+**Project Title**:  The Leios Ledger Formalization (LLF): CIP-164 ledger rules in the Dijkstra era
 
 **Repository**:  `williamdemeo/formal-ledger-specifications`
 
@@ -38,9 +38,11 @@ in the Dijkstra-era spec: the new types, the new
 protocol parameters, the voting key in pool registration, the
 committee, the validity predicates for votes, certificates, and
 endorser blocks, and the integration of certificate checking and
-certified-EB application into the BBODY and CHAIN rules.  Properties, conformance testing, Haskell extraction, and reward or
-incentive changes are deliberately out of scope; they are collected in the Follow-up work section at the end,
-with pointers into the full roadmap (`docs/GITHUB_PROJECT.md`).
+certified-EB application into the BBODY and CHAIN rules.  Properties,
+conformance testing, Haskell extraction, and reward or incentive changes
+are deliberately out of scope; they are collected in the Follow-up work
+section at the end, with pointers into the full roadmap
+(`docs/GITHUB_PROJECT.md`).
 
 Five decisions keep the scope this small; the design note (M1-1)
 records them and circulates them, and none of them blocks the Agda:
@@ -144,9 +146,11 @@ Weeks 3–4.  The semantic core: the committee with its quorum
 arithmetic, and the three validity predicates — what a well-formed vote
 is, what a valid certificate is, and what an endorser block must
 satisfy for honest voters to endorse it (`ValidEB`, the property a
-certificate ultimately certifies).  Suggested split: one person takes
-the committee and certificate validity (they share the quorum
-arithmetic), the other vote validity and `ValidEB`.
+certificate ultimately certifies).  All four issues edit the single
+module `Leios/Validity.lagda.md` (the committee definitions folded into
+it, 2026-08-25), so run them as one sequenced branch — M2-1 first, then
+the validity relations stacked on it — rather than as parallel
+siblings; the pair splits by review instead of by module.
 
 **Exit criterion:**
 
@@ -271,7 +275,7 @@ M1-3, and M2-1.  Names follow CIP-164; the CDDL correspondence is noted
 inline.
 
 ```agda
--- Leios/Abstract.lagda.md — record LeiosAbstract : Type₁
+-- Leios/Abstract.lagda.md
 -- Abstract voting crypto: BLS in the implementation, scheme-agnostic here.
 record LeiosAbstract : Type₁ where
   field
@@ -341,7 +345,7 @@ selectCommittee : UnitInterval → (KeyHash ⇀ Coin) → Pools → Committee
 ```
 
 ```agda
--- Leios/Validity.lagda.md — shapes, not final statements
+-- Leios/Validity.lagda.md (shapes, not final statements)
 ValidVote : Committee → Vote → Type
 ValidCert : Committee → Coin → PParams → Slot × EBHash → Certificate → Type
   -- committee, total active stake, params (τ), the expected announcement
@@ -355,7 +359,7 @@ ValidEB Γ ls eb txs =
 ```
 
 ```agda
--- Chain.lagda.md — threading between the announcing and certifying block
+-- Chain.lagda.md: threading between the announcing and certifying block
 record PendingEB : Type where
   field
     peAnn      : Announcement
@@ -367,12 +371,12 @@ record PendingEB : Type where
 ```
 
 ```agda
--- Certs.lagda.md — StakePoolParams gains one field
+-- Certs.lagda.md (StakePoolParams gains one field)
     votingKey : Maybe (VotingKey × KeyProof)
 -- POOL-reg / POOL-rereg gain the premise
 --   ∀ registered key: validKeyProof (proj₁ k) (proj₂ k)
 
--- PParams.lagda.md — the Leios block (groups per the design note)
+-- PParams.lagda.md: the Leios block (groups per the design note)
     leiosHeaderDiffusionPeriod  : ℕ             -- L_hdr, in slots
     leiosVotingPeriod           : ℕ             -- L_vote
     leiosDiffusionPeriod        : ℕ             -- L_diff
@@ -621,7 +625,7 @@ Full-roadmap counterpart: M3-3.
 
 ---
 
-### Issue M3-4: Worked example, umbrella module, wrap-up (#14)
+### Issue M3-4: Worked example, overview prose, wrap-up (#14)
 
 **Labels:** `documentation`, `milestone-3-integration`, `Leios`, `era: dijkstra`
 
@@ -664,39 +668,39 @@ Deferred to keep six weeks honest; each item points at its issue in the
 full roadmap (`docs/GITHUB_PROJECT.md`), which remains the long-range
 reference.
 
-+  **Metatheory** — certified-application soundness (the theorem that
++  **Metatheory**: certified-application soundness (the theorem that
    justifies the implementation's reapply optimization; full plan
    M4-1), preservation of value through the new rules (M4-2), no
    double application (M4-3), quorum safety (M4-4).
-+  **Executability and conformance** — `Computational` instances and a
++  **Executability and conformance**: `Computational` instances and a
    predicate-failure taxonomy for the new rules (M4-5, and the
    conformance-facing half of M0-5), Foreign/Haskell extraction
    (M5-1), conformance test vectors (M5-2), the living traceability
    map and upstream divergence filing (M5-3, M5-4).
-+  **Property catalog** — register the Leios properties once the
++  **Property catalog**: register the Leios properties once the
    property-tracking tooling lands on `leios-main` (M4-6).
-+  **Voting-state interface** — mechanize
++  **Voting-state interface**: mechanize
    `initializeVotingLedgerState` / `applyTxForVoting` /
    `reapplyTxForVoting` / `forgetVotingLedgerState` as incremental
    structures over `ValidEB` (full plan M2-2); the design note's
    interface table already gives them their meanings.
-+  **Committee concretization** — the descending-order truncation
++  **Committee concretization**: the descending-order truncation
    construction with its tie-break, and materializing the committee at
    the epoch boundary, if M2-1 ships the abstract form.
-+  **Crypto in the core** — migrate the aggregate-signature abstraction
++  **Crypto in the core**: migrate the aggregate-signature abstraction
    from `Leios.Abstract` to `Ledger.Core` for sharing with Peras (full
    plan M1-1).
-+  **Feature gating** — the protocol-version guard for pre-Leios
++  **Feature gating**: the protocol-version guard for pre-Leios
    Dijkstra blocks (full plan M3-5).
-+  **Nested-transaction deep-dive** — per-EB budget accounting for
++  **Nested-transaction deep-dive**: per-EB budget accounting for
    sub-transactions and batch interactions beyond what `LEDGERS`
    already gives (full plan M3-4).
-+  **Key rotation** — real rotation semantics when the CIP-164
++  **Key rotation**: real rotation semantics when the CIP-164
    follow-up amendment lands (tracked in M1-5's prose meanwhile).
-+  **Byte-exact EB-hash preimage** — the `hashEBRefs` abstraction leaves
++  **Byte-exact EB-hash preimage**: the `hashEBRefs` abstraction leaves
    the EB identifier's preimage unpinned; pin it (with upstream) before
    conformance testing, or the cliff gets reverse-engineered later.
-+  **Rewards and incentives** — none are modeled and CIP-164 requires
++  **Rewards and incentives**: none are modeled and CIP-164 requires
    none ("Leios does not require any changes to incentives in Cardano");
    if a Leios incentive mechanism ever becomes normative it enters
    through the full roadmap.
@@ -706,7 +710,7 @@ reference.
 ## Field-driven work outside the milestone plan
 
 +  [#1295](https://github.com/IntersectMBO/formal-ledger-specifications/issues/1295)
-   — the `[Leios]` umbrella tracking issue; this plan's summary belongs
+   : the `[Leios]` umbrella tracking issue; this plan's summary belongs
    there once adopted.
 +  Upstream references:
    [cardano-ledger #5626](https://github.com/IntersectMBO/cardano-ledger/pull/5626),
