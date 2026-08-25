@@ -279,10 +279,11 @@ record LeiosAbstract : Type₁ where
     VotingKey EBHash    : Type            -- key: 96-byte BLS vkey on the wire
     VotingSig AggSig    : Type
     KeyProof            : Type            -- proof of possession
+    TxRefHash           : Type            -- hash of the COMPLETE tx bytes (CIP App. B)
     isSignedVote  : VotingKey → Slot × EBHash → VotingSig → Type
     isSignedAgg   : List VotingKey → Slot × EBHash → AggSig → Type
     validKeyProof : VotingKey → KeyProof → Type
-    hashEBRefs    : List (TxId × ℕ) → EBHash
+    hashEBRefs    : List (TxRefHash × ℕ) → EBHash
     -- plus DecEq instances and decidability of the three predicates
 ```
 
@@ -290,14 +291,16 @@ The message type is literally `Slot × EBHash` (the CIP signs
 `concat(slot_no, endorser_block_hash)`); signing the pair directly
 avoids serialization plumbing.  `hashEBRefs` fixes the EB identifier as
 the hash of the reference structure itself, checkable before any
-transaction data is fetched; the exact wiring (a plain function versus
-a `Hashable` instance) is an M1-2 choice.
+transaction data is fetched.  References hash the complete transaction
+bytes, not the body-identity `TxId`: a `(TxId, size)` pair could not pin
+witnesses (settled in the m1-2 review; the as-built module matches this
+sketch).
 
 ```agda
 -- Leios/Types.lagda.md
 record EndorserBlock : Type where
   field
-    ebTxRefs : List (TxId × ℕ)     -- ordered references: id and declared size
+    ebTxRefs : List (TxRefHash × ℕ)  -- ordered references: hash and declared size
     -- CDDL: omap⟨hash32, uint16⟩; duplicate-freedom is a validity
     -- condition (alternative: carry a uniqueness proof field)
 
@@ -402,7 +405,7 @@ written back as a `(#N)` suffix.
 
 <!-- BEGIN GENERATED: milestone-1 -->
 
-### Issue M1-1: Design note: the Leios Ledger Formalization plan decisions (#2)
+### Issue M1-1: Design note: the Leios Ledger Formalization plan decisions (#2, closed)
 
 **Labels:** `documentation`, `milestone-1-foundations`, `Leios`, `discussion`
 
@@ -441,10 +444,10 @@ Amendments (2026-08-19 field review, from the Musashi trace-verifier work; shipp
 ## Description
 
 New module `Ledger.Dijkstra.Specification.Leios.Abstract` with the `LeiosAbstract` record sketched in the plan's "Predicted new Agda types" section: abstract types for voting keys, signatures, aggregate
-signatures, proofs of possession, and EB hashes; verification predicates over the message `Slot × EBHash`; the EB-reference hash function; decidability instances.
+signatures, proofs of possession, EB hashes, and transaction-reference hashes (`TxRefHash`: the hash of the complete transaction bytes, per CIP-164 Appendix B); verification predicates over the message `Slot × EBHash`; the EB-reference hash function; decidability instances.
 
 - [ ] Define the record; keep it scheme-agnostic (CIP-164 Appendix A); no concrete curve arithmetic, `--safe` throughout.
-- [ ] Thread it as a new field of `AbstractFunctions` in `Ledger.Dijkstra.Specification.Abstract`, so downstream module signatures do not change.
+- [ ] Thread it as a new `leiosAbstract` field of `GovStructure` (`Gov/Base.lagda.md`), supplied through `TransactionStructure`, so downstream module signatures do not change.  (Revised during review: `Certs` sees only `GovStructure` and sits upstream of `AbstractFunctions`, so an `AbstractFunctions` field cannot reach the registration rule's proof-of-possession premise.)
 - [ ] Module prose: one paragraph on the BLS12-381 instantiation and the Peras-sharing intent, with the core-migration noted as follow-up.
 
 Estimated effort: 2 days.  
@@ -456,9 +459,10 @@ Full-roadmap counterpart: M1-1 (scoped down: Dijkstra-local, no `Ledger.Core` ch
 
 **Labels:** `milestone-1-foundations`, `Leios`, `era: dijkstra`
 
-New module `Ledger.Dijkstra.Specification.Leios.Types` with `EndorserBlock` (ordered transaction references: id and declared size), `Announcement`, `Vote`, and `Certificate`, per the sketches in the plan.
+New module `Ledger.Dijkstra.Specification.Leios.Types` with `EndorserBlock` (ordered transaction references: `TxRefHash` and declared size), `Announcement`, `Vote`, and `Certificate`, per the sketches in the plan.
 
 - [ ] Records and `DecEq` instances; EB identifier via `hashEBRefs`.
+- [ ] References carry `TxRefHash`, not `TxId`: the body-identity `TxId` cannot pin witnesses, while CIP-164 Appendix B fixes the reference hash over the complete transaction bytes (established in the m1-2 review; `LeiosAbstract` already provides the carrier and `hashEBRefs : List (TxRefHash × ℕ) → EBHash`).  `EndorserBlock` is therefore `List (TxRefHash × ℕ)`.
 - [ ] Module prose marks the EB-identifier boundary as a known conformance cliff: the identifier is `hashEBRefs` of the reference structure with the byte-exact preimage deliberately unpinned; pinning it is a named follow-up prerequisite for conformance testing (Cardano precedent: the block-body hash's segmented preimage exists only in implementation internals).
 - [ ] Decide the duplicate-freedom representation (validity condition versus proof field) and record the choice in module prose.
 - [ ] Module prose maps each type to its CIP-164 CDDL counterpart (Appendix B), including the note that the header's `certified_eb` bit is spec-derived.
