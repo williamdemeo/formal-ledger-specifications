@@ -15,7 +15,11 @@ input to the first `populate` run; after that they are regenerated from
 GitHub state by `update`.  Never run update before the first populate.
 
 STATUS: populated to the fork 2026-08-18; the generated regions
-mirror the fork's issues.
+mirror the fork's issues.  RE-BASELINED 2026-08-28 (see the
+Re-baseline section): CIP-164 amendments (CIPs #1250), Sebastian Nagel
+co-developing, four-week release-candidate target, fork trial retired;
+tracking moves to sub-issues of IntersectMBO#1295.  Do not run
+populate or update against the fork again.
 
     python3 <engine>/scripts/gh_project_lint.py     docs/GITHUB_PROJECT_6WEEK.md
     python3 <engine>/scripts/gh_project_populate.py docs/GITHUB_PROJECT_6WEEK.md --dry-run
@@ -62,12 +66,13 @@ records them and circulates them, and none of them blocks the Agda:
     inside the Dijkstra namespace, not a change to `Ledger.Core`;
     migration of the aggregate-signature abstraction to the core (where
     Peras could share it) is follow-up.
-4.  **Committee as data, selection abstract first.**  The committee is
-    a concrete data structure with quorum arithmetic; the stake-based
-    truncation that produces it is specified abstractly (signature and
-    laws); the order itself (descending stake, ties by ascending pool
-    id) is pinned as a law, and only the concrete construction may come
-    later.
+4.  **Committee as data, selection concrete.**  The committee is a
+    concrete data structure with quorum arithmetic, produced by the
+    seat-count truncation the amended CIP-164 specifies in full (top
+    `N_c` by stake, ties by ascending pool id, everyone when fewer
+    than `N_c` register); a sort-free seat-index construction makes
+    the order a provable lemma rather than an assumed law
+    (re-baselined 2026-08-28 from "selection abstract first").
 5.  **Defaults over debates.**  Where a design question has a CIP-164
     answer or a prototype precedent, the LLF takes it and records
     it; implementer feedback is gathered in parallel and folded in
@@ -81,7 +86,64 @@ tracking issue is
 Budget check: the fourteen issues below carry effort estimates summing
 to about 36 person-days, against roughly 50 working days available to
 two people in six weeks; the slack absorbs review cycles and the
-unknowns that a first formalization always finds.
+unknowns that a first formalization always finds.  Re-baselined
+2026-08-28: the release candidate is expected in four weeks, a third
+contributor (Sebastian Nagel) is active, and much of M1-4 through M2-3
+already exists as landed or sketched code whose remaining cost is
+review-and-harden rather than construction.
+
+---
+
+## Re-baseline (2026-08-28)
+
+Two external events moved the plan's ground.
+
+1.  **CIP-164 was amended** ([cardano-foundation/CIPs #1250][cip-1250-pr],
+    in review with implementer consensus): the three periods became
+    wall-clock durations (seconds in Table 3, `Milliseconds` in the
+    LLF), the committee is sized directly by `committeeSize` (`N_c`)
+    with the tie-break and the fewer-than-`N_c` case pinned, `τ` is
+    bounded on both sides (`0.5 < τ < σ(N_c)`), `S_EB-ref` joined
+    Table 3, votes bind the hash of the announcing RB header, and
+    certificates carry only the signer bitfield and the aggregate
+    signature.  The design note is re-aligned in the same pass that
+    added this section.
+2.  **Sebastian Nagel (Leios designer) joined the work.**  Upstream
+    [#1299][pr-1299] re-bases M1-4 on the amended CIP (the fork PR #20
+    commits plus an alignment commit; review in progress), and his
+    sketch [ch1bo#1][ch1bo-1] drafts key registration by dedicated
+    certificate with expiry, BLS primitives in
+    `Ledger.Core.Specification.Crypto`, concrete committee selection,
+    and epoch-boundary materialization.  He expects a release
+    candidate in four weeks, not six.
+
+The fork trial is retired in consequence (`LEIOS_FORK_WORKFLOW.md`
+records the closure): work happens on IntersectMBO `leios-main`,
+remaining fork PRs migrate per the per-issue ritual, and new tracking
+is sub-issues of [IntersectMBO#1295][issue-1295].  The issue listings
+below keep the fork's `(#N)` numbers as the trial's record.
+
+Per-issue deltas:
+
+| Issue | Re-baseline status |
+| ----- | ------------------ |
+| M1-1 design note | Upstream PR #1297 open; the CIP-#1250 alignment commit is prepared on its branch. |
+| M1-2 `Leios.Abstract` | Rework: the vote/aggregate message becomes the announcing RB header hash; whether the primitives live Dijkstra-local or in `Ledger.Core` (Sebastian's sketch) is a design call to settle with Carlos before migration. |
+| M1-3 `Leios.Types` | `EndorserBlock` and `Announcement` survive unchanged; `Certificate` loses its slot and EB-hash fields; `Vote` shrinks to three fields, and whether the ledger models votes at all is the design note's addendum question, sharpened by the amendment. |
+| M1-4 parameters | Superseded by upstream #1299, which contains fork #20; adopt after review, then close fork #20 with a pointer. |
+| M1-5 pool voting key | On hold between two designs: `bls_key` in pool registration (the CIP text) versus a dedicated certificate with expiry (CIPs #38, ouroboros-leios #1024, sketched in ch1bo#1); the plan follows the CIP text until the amendment lands. |
+| M2-1 committee | Selection is concrete (seat-index construction) and the sketch materializes it at the epoch boundary; remaining work is review, `certifiable`, the worked examples, and the order lemma. |
+| M2-2 vote validity | Likely reduced to prose plus the protocol-spec correspondence: votes never reach the chain, and the sketch models certificates only. |
+| M2-3 certificate validity | Largely covered by the sketch's `ValidLeiosCert`; remaining work is decidability, the five-checks prose mapping, and review. |
+| M2-4 `ValidEB` | Unchanged in scope; still greenfield. |
+| M3-1..M3-3 block/chain rules | Reshaped: the certification window converts wall-clock durations to slots by ceiling division (`slotLength` enters the rules), the chain state must carry the announcing header's hash (it is the certificate's message), and the sketch defers exactly this ground. |
+| M3-4 worked example, wrap-up | Unchanged. |
+| M3-5 protocol-spec alignment | Unchanged and more valuable: three artifacts now move at once. |
+
+[cip-1250-pr]: https://github.com/cardano-foundation/CIPs/pull/1250
+[pr-1299]: https://github.com/IntersectMBO/formal-ledger-specifications/pull/1299
+[ch1bo-1]: https://github.com/ch1bo/formal-ledger-specifications/pull/1
+[issue-1295]: https://github.com/IntersectMBO/formal-ledger-specifications/issues/1295
 
 ---
 
@@ -118,8 +180,8 @@ existing modules (M1-4, M1-5).
 **Exit criterion:**
 
 `leios-main` type-checks under `--safe` with `Leios.Abstract` and
-`Leios.Types` in place, the parameter record extended (including the
-`τ < σ_c` well-formedness constraint), and pool registration carrying
+`Leios.Types` in place, the parameter record extended (well-formed per
+the amended CIP-164), and pool registration carrying
 and checking the voting key.  The design note is merged and has been
 sent to the implementers for parallel comment.
 
@@ -159,8 +221,8 @@ with a module-prose paragraph mapping its conjuncts to CIP-164's text
 (the six vote-casting conditions, the five certificate-validation
 checks), and each stated against
 the committee/quorum definitions of M2-1.  The committee order
-(descending stake, ties by ascending pool id) is pinned as a law of the
-selection function.
+(descending stake, ties by ascending pool id) is a proved property of
+the concrete selection function.
 
 Issue dependencies:
 
@@ -250,7 +312,7 @@ src/Ledger/Dijkstra/Specification/
 │                               --      ValidVote, ValidCert, ValidEB (M2-2..M2-4)
 ├── Gov/Base.lagda.md           -- EDIT +leiosAbstract field in GovStructure (M1-2)
 ├── Transaction.lagda.md        -- EDIT supply leiosAbstract via TransactionStructure (M1-2)
-├── PParams.lagda.md            -- EDIT +Leios parameter block, groups, τ<σ_c (M1-4)
+├── PParams.lagda.md            -- EDIT +Leios parameter block, groups (M1-4)
 ├── Certs.lagda.md              -- EDIT +votingKey in StakePoolParams, proof-of-possession premise (M1-5)
 ├── BlockBody.lagda.md          -- EDIT +announcement/cert fields, BBODY premises (M3-1, M3-2)
 └── Chain.lagda.md              -- EDIT +PendingEB threading, window check (M3-3)
@@ -272,7 +334,11 @@ automatically.
 
 Best-guess sketches, in the spec's house style, to be settled in M1-2,
 M1-3, and M2-1.  Names follow CIP-164; the CDDL correspondence is noted
-inline.
+inline.  The 2026-08-28 re-baseline supersedes parts of these sketches
+(the period types, the committee parameter, the vote and certificate
+shapes, the selection signature); the Re-baseline section carries the
+amended shapes, and the sketches below stay as the plan's original
+record.
 
 ```agda
 -- Leios/Abstract.lagda.md
@@ -684,19 +750,22 @@ reference.
    `reapplyTxForVoting` / `forgetVotingLedgerState` as incremental
    structures over `ValidEB` (full plan M2-2); the design note's
    interface table already gives them their meanings.
-+  **Committee concretization**: the descending-order truncation
-   construction with its tie-break, and materializing the committee at
-   the epoch boundary, if M2-1 ships the abstract form.
-+  **Crypto in the core**: migrate the aggregate-signature abstraction
-   from `Leios.Abstract` to `Ledger.Core` for sharing with Peras (full
-   plan M1-1).
++  **Committee materialization**: storing the epoch's committee in the
+   epoch state (the concrete selection itself moved into M2-1 at the
+   2026-08-28 re-baseline).
++  **Crypto in the core**: the aggregate-signature abstraction may land
+   in `Ledger.Core` directly rather than by later migration (under
+   discussion at the re-baseline; Peras sharing is the payoff either
+   way; full plan M1-1).
 +  **Feature gating**: the protocol-version guard for pre-Leios
    Dijkstra blocks (full plan M3-5).
 +  **Nested-transaction deep-dive**: per-EB budget accounting for
    sub-transactions and batch interactions beyond what `LEDGERS`
    already gives (full plan M3-4).
-+  **Key rotation**: real rotation semantics when the CIP-164
-   follow-up amendment lands (tracked in M1-5's prose meanwhile).
++  **Key rotation and expiry**: the dedicated registration certificate
+   with ledger-enforced expiry under discussion (cardano-scaling/CIPs
+   #38, ouroboros-leios #1024); M1-5 follows the CIP text until it
+   lands.
 +  **Byte-exact EB-hash preimage**: the `hashEBRefs` abstraction leaves
    the EB identifier's preimage unpinned; pin it (with upstream) before
    conformance testing, or the cliff gets reverse-engineered later.

@@ -1,9 +1,15 @@
 # Leios fork workflow (trial period)
 
-Status: adopted 2026-08-18 for the opening week(s) of the six-week Leios
-plan, while the work is trialed in William's fork before anything
-touches the IntersectMBO repository.  Archive this file when the train
-moves upstream.
+Status: ARCHIVED 2026-08-28; the train moved upstream.  Adopted
+2026-08-18 for the opening week(s) of the six-week Leios plan, while
+the work was trialed in William's fork.  The trial ended when Sebastian
+Nagel joined the work and the fork topology began obstructing exactly
+the collaboration that matters: no stacked PRs across forks, no pushes
+to fork PR branches, no reviewer tagging.  Work now happens on
+IntersectMBO `leios-main` under the ordinary branch-and-PR workflow,
+and the fork remains as a personal remote.  The per-issue migration
+ritual (the Upstream transition section below) stays live for the
+still-open fork PRs; everything else here is historical record.
 
 ## Why a fork
 
